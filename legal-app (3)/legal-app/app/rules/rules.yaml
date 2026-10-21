@@ -1,0 +1,348 @@
+version: 0.1.0
+rules:
+- id: PRD-01
+  applies_to:
+  - perda
+  severity: K
+  category: kewenangan
+  title: Materi di luar kewenangan kabupaten/kota
+  fail_if:
+    fact: dalam_kewenangan_kabupaten
+    is: false
+  advice: Cek Lampiran UU 23/2014 bidang kesehatan; ubah atau hapus materi.
+  basis: UU 23/2014 [VERIFIKASI]
+- id: PRD-03
+  applies_to:
+  - perda
+  severity: K
+  category: hierarki
+  title: Bertentangan dengan norma lebih tinggi
+  fail_if:
+    fact: bertentangan_norma_lebih_tinggi
+    is: true
+  advice: Sesuaikan dengan UU/PP/Permenkes (lex superior).
+  basis: UU 12/2011 [VERIFIKASI]
+- id: PRD-06
+  applies_to:
+  - perda
+  severity: K
+  category: hierarki
+  title: Ketentuan pidana tidak sesuai Pasal 238 UU 23/2014 (diubah UU 1/2026)
+  fail_if:
+    all:
+    - fact: memuat_sanksi_pidana
+      is: true
+    - fact: pidana_sesuai_pasal_238
+      is: false
+  advice: Cocokkan dengan bunyi terbaru Pasal 238 pasca UU 1/2026.
+  basis: UU 23/2014 jo. UU 1/2026
+- id: PRD-07
+  applies_to:
+  - perda
+  severity: K
+  category: keuangan
+  title: Pungutan tanpa dasar UU HKPD
+  fail_if:
+    all:
+    - fact: memuat_pungutan
+      is: true
+    - fact: dasar_hkpd
+      is: false
+  advice: Pastikan jenis pungutan dan tata cara sesuai UU HKPD.
+  basis: UU HKPD [VERIFIKASI]
+- id: PRD-10
+  applies_to:
+  - perda
+  severity: K
+  category: prosedur
+  title: Tidak ada di Propemperda dan tanpa alasan di luar Propemperda
+  fail_if:
+    all:
+    - fact: masuk_propemperda
+      is: false
+    - fact: alasan_di_luar_propemperda
+      is: false
+  advice: Masukkan ke Propemperda atau dokumentasikan alasan.
+  basis: Permendagri 80/2015 jo. 120/2018
+- id: PRD-11
+  applies_to:
+  - perda
+  severity: K
+  category: prosedur
+  title: Naskah Akademik tidak ada
+  fail_if:
+    fact: ada_naskah_akademik
+    is: false
+  advice: Susun Naskah Akademik atau keterangan yang dipersyaratkan.
+  basis: UU 12/2011 [VERIFIKASI]
+- id: PRD-12
+  applies_to:
+  - perda
+  severity: T
+  category: prosedur
+  title: Harmonisasi belum selesai
+  fail_if:
+    fact: harmonisasi_selesai
+    is: false
+  advice: Selesaikan harmonisasi.
+  basis: Permendagri 80/2015 jo. 120/2018
+- id: PRD-13
+  applies_to:
+  - perda
+  severity: T
+  category: prosedur
+  title: Konsultasi publik tidak terdokumentasi
+  fail_if:
+    fact: konsultasi_publik_terdokumentasi
+    is: false
+  advice: Dokumentasikan masukan dan tanggapan.
+  basis: Putusan MK 91/PUU-XVIII/2020 [VERIFIKASI]
+- id: PRD-14
+  applies_to:
+  - perda
+  severity: T
+  category: prosedur
+  title: Jalur fasilitasi/evaluasi belum ditentukan
+  fail_if:
+    fact: jalur_fasilitasi_evaluasi_ditentukan
+    is: false
+  advice: Tentukan apakah dievaluasi atau difasilitasi.
+  basis: Permendagri 80/2015 jo. 120/2018
+- id: PRD-20
+  applies_to:
+  - perda
+  - perbup
+  severity: S
+  category: teknis
+  title: Rujukan silang/definisi tidak konsisten
+  fail_if:
+    fact: rujukan_silang_valid
+    is: false
+  advice: Periksa ulang definisi dan rujukan pasal.
+  basis: Lampiran II UU 12/2011 [VERIFIKASI]
+- id: PBP-01
+  applies_to:
+  - perbup
+  severity: K
+  category: kewenangan
+  title: Tidak ada perintah/atribusi
+  fail_if:
+    fact: ada_perintah_atau_atribusi
+    is: false
+  advice: Cari pasal Perda/UU yang memerintahkan.
+  basis: UU 23/2014 [VERIFIKASI]
+- id: PBP-02
+  applies_to:
+  - perbup
+  severity: K
+  category: hierarki
+  title: Melampaui lingkup delegasi
+  fail_if:
+    fact: melampaui_delegasi
+    is: true
+  advice: Pangkas materi atau naikkan ke Perda.
+  basis: ''
+- id: PBP-03
+  applies_to:
+  - perbup
+  severity: K
+  category: hierarki
+  title: Memuat pidana atau pungutan baru
+  fail_if:
+    any:
+    - fact: memuat_sanksi_pidana
+      is: true
+    - fact: memuat_pungutan_baru
+      is: true
+  advice: Pindahkan ke Perda.
+  basis: ''
+- id: PBP-06
+  applies_to:
+  - perbup
+  severity: T
+  category: prosedur
+  title: Harmonisasi belum selesai
+  fail_if:
+    fact: harmonisasi_selesai
+    is: false
+  advice: Selesaikan harmonisasi.
+  basis: Permendagri 80/2015 jo. 120/2018
+- id: INS-01
+  applies_to:
+  - kepbup
+  severity: K
+  category: hierarki
+  title: Keputusan memuat norma umum
+  fail_if:
+    fact: memuat_norma_umum
+    is: true
+  advice: Ubah menjadi Perbup atau Perda.
+  basis: ''
+- id: KPB-02
+  applies_to:
+  - kepbup
+  severity: K
+  category: kewenangan
+  title: Dasar kewenangan menetapkan tidak disebut
+  fail_if:
+    fact: ada_dasar_kewenangan
+    is: false
+  advice: Cantumkan dasar di konsiderans mengingat.
+  basis: UU 30/2014 [VERIFIKASI]
+- id: KPB-03
+  applies_to:
+  - kepbup
+  severity: K
+  category: kewenangan
+  title: Penandatangan tidak berwenang
+  fail_if:
+    fact: penandatangan_berwenang
+    is: false
+  advice: Pastikan mandat/delegasi tertulis.
+  basis: UU 30/2014 [VERIFIKASI]
+- id: KPB-05
+  applies_to:
+  - kepbup
+  severity: T
+  category: kewenangan
+  title: Potensi konflik kepentingan
+  fail_if:
+    fact: ada_konflik_kepentingan
+    is: true
+  advice: Ganti pihak yang ditunjuk.
+  basis: UU 30/2014 [VERIFIKASI]
+- id: KPB-07
+  applies_to:
+  - kepbup
+  severity: S
+  category: keuangan
+  title: Beban anggaran tanpa sumber dana
+  fail_if:
+    all:
+    - fact: ada_beban_anggaran
+      is: true
+    - fact: sumber_dana_disebut
+      is: false
+  advice: Sebutkan sumber dana.
+  basis: ''
+- id: KSD-02
+  applies_to:
+  - mou
+  - pks
+  severity: K
+  category: prosedur
+  title: Perlu persetujuan DPRD tetapi belum ada
+  fail_if:
+    all:
+    - any:
+      - fact: membebani_masyarakat_dan_daerah
+        is: true
+      - fact: pendanaan_belum_dianggarkan
+        is: true
+    - fact: persetujuan_dprd
+      is: false
+  advice: Peroleh persetujuan DPRD sebelum penandatanganan.
+  basis: PP 28/2018; Permendagri 22/2020
+- id: KSD-04
+  applies_to:
+  - mou
+  - pks
+  severity: T
+  category: kewenangan
+  title: Penandatangan bukan Bupati/tanpa kuasa
+  fail_if:
+    fact: penandatangan_bupati_atau_berkuasa
+    is: false
+  advice: Terbitkan kuasa tertulis.
+  basis: PP 28/2018
+- id: KEU-02
+  applies_to:
+  - mou
+  - pks
+  severity: K
+  category: keuangan
+  title: Aset daerah dimanfaatkan tanpa persetujuan pengelola barang
+  fail_if:
+    all:
+    - fact: memanfaatkan_aset_daerah
+      is: true
+    - fact: persetujuan_pengelola_barang
+      is: false
+  advice: Urus persetujuan pemanfaatan BMD.
+  basis: Peraturan BMD [VERIFIKASI]
+- id: KEU-03
+  applies_to:
+  - mou
+  - pks
+  severity: K
+  category: keuangan
+  title: Pengadaan terselubung
+  fail_if:
+    fact: pengadaan_terselubung
+    is: true
+  advice: Arahkan ke mekanisme pengadaan/KPBU.
+  basis: Peraturan pengadaan [VERIFIKASI]
+- id: MK-01
+  applies_to:
+  - mou
+  - pks
+  severity: K
+  category: hierarki
+  title: Layanan klinis tanpa tenaga/fasyankes berizin
+  fail_if:
+    all:
+    - fact: layanan_klinis
+      is: true
+    - fact: tenaga_berizin
+      is: false
+  advice: Pastikan STR/SIP dan izin fasyankes.
+  basis: UU 17/2023 [VERIFIKASI]
+- id: MK-02
+  applies_to:
+  - mou
+  - pks
+  severity: K
+  category: hierarki
+  title: Berbagi data pasien tanpa dasar hukum
+  fail_if:
+    all:
+    - fact: berbagi_data_pasien
+      is: true
+    - fact: dasar_hukum_data
+      is: false
+  advice: Tetapkan dasar, tujuan, akses, keamanan data.
+  basis: UU PDP; UU 17/2023 [VERIFIKASI]
+- id: KLS-14
+  applies_to:
+  - mou
+  - pks
+  severity: K
+  category: teknis
+  title: Klausul sepihak berbahaya
+  fail_if:
+    fact: klausul_sepihak_berbahaya
+    is: true
+  advice: Seimbangkan atau hapus klausul.
+  basis: ''
+- id: INS-03
+  applies_to:
+  - mou
+  severity: S
+  category: hierarki
+  title: MoU memuat kewajiban mengikat
+  fail_if:
+    fact: memuat_kewajiban_mengikat
+    is: true
+  advice: Pindahkan ke PKS atau lembutkan rumusan.
+  basis: ''
+- id: KLS-08
+  applies_to:
+  - pks
+  severity: S
+  category: teknis
+  title: Tidak ada klausul keadaan kahar
+  fail_if:
+    fact: ada_keadaan_kahar
+    is: false
+  advice: Tambahkan klausul kahar (termasuk wabah/KLB).
+  basis: ''

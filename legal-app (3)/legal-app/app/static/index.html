@@ -1,0 +1,112 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Legal Audit & Drafting - Dinkes</title>
+<style>
+:root{--bg:#fff;--fg:#1c1c1c;--mut:#666;--card:#f4f5f7;--bd:#d6d9de;--ac:#0b6b5d}
+@media(prefers-color-scheme:dark){:root{--bg:#16181b;--fg:#e8e8e8;--mut:#9aa0a6;--card:#1f2226;--bd:#363a40;--ac:#4fc3ad}}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--fg);margin:0;line-height:1.5}
+main{max-width:900px;margin:auto;padding:16px}nav button{padding:8px 14px;border:1px solid var(--bd);background:var(--card);color:var(--fg);cursor:pointer}
+nav button.on{background:var(--ac);color:#fff}.card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;margin:10px 0}
+select,input,textarea{width:100%;box-sizing:border-box;padding:6px;background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:4px}
+button.go{background:var(--ac);color:#fff;border:0;padding:8px 14px;border-radius:4px;cursor:pointer;margin:6px 4px 0 0}
+.K{border-left:4px solid #c0392b}.T{border-left:4px solid #e67e22}.S{border-left:4px solid #d4ac0d}.R{border-left:4px solid #888}
+small{color:var(--mut)}pre{white-space:pre-wrap}.row{display:grid;grid-template-columns:1fr 150px;gap:8px;align-items:center;margin:6px 0}
+</style></head><body><main>
+<h2>Legal Audit &amp; Drafting</h2><small>Alat bantu telaah. Wajib direview Bagian Hukum; dasar hukum diverifikasi ke sumber resmi.</small>
+<div id="login" class="card"><b>Masuk</b><label>Username<input id="lu" autocomplete="username"></label><label>Password<input id="lp" type="password" autocomplete="current-password"></label><button class="go" id="lg">Masuk</button> <small id="lerr"></small></div>
+<div id="app" hidden><div style="text-align:right"><small id="who"></small> <button class="go" id="lo">Keluar</button></div>
+<nav style="margin:10px 0"><button data-t="t1" class="on">Pilih instrumen</button><button data-t="t2">Audit dokumen</button><button data-t="t3">Buat draf</button><button data-t="t4" id="nv4" hidden>Riwayat &amp; review</button><button data-t="t5" id="nv5" hidden>Admin</button></nav>
+
+<section id="t1"><div class="card" id="cls"></div><button class="go" id="clsGo">Tentukan instrumen</button><div id="clsOut"></div></section>
+
+<section id="t2" hidden><div class="card"><label>Instrumen<select id="inst"><option value="perda">Perda</option><option value="perbup">Perbup</option><option value="kepbup">Keputusan Bupati</option><option value="mou">MoU</option><option value="pks">PKS</option></select></label>
+<label>Unggah PDF/DOCX (opsional)<input type="file" id="file" accept=".pdf,.docx"></label>
+<button class="go" id="up">Unggah &amp; baca</button><button class="go" id="ck">Muat checklist</button><label id="aiBox" hidden><input type="checkbox" id="aiOk" style="width:auto"> Saya paham teks dokumen dikirim ke layanan AI eksternal</label><button class="go" id="ai" hidden>Tinjau dengan AI</button><div id="upOut"></div></div>
+<div id="facts"></div><button class="go" id="run" hidden>Jalankan audit</button><div id="res"></div></section>
+
+<section id="t3" hidden><div class="card"><label>Jenis dokumen<select id="dinst"><option value="perda">Perda</option><option value="perbup">Perbup</option><option value="kepbup">Keputusan Bupati</option><option value="mou">MoU</option><option value="pks">PKS</option></select></label><div id="dform"></div>
+<button class="go" id="pv">Pratinjau</button><button class="go" id="dl">Unduh .docx</button></div><div id="dout"></div></section>
+<section id="t4" hidden><div id="runs"></div></section>
+<section id="t5" hidden><div class="card"><b>Tambah pengguna</b><label>Username<input id="nu"></label><label>Password (min 10 karakter)<input id="np" type="password"></label>
+<label>Peran<select id="nr"><option value="penyusun">Penyusun</option><option value="reviewer">Reviewer</option><option value="admin">Admin</option></select></label><button class="go" id="mk">Buat</button> <small id="merr"></small></div><div id="users"></div></section>
+<script>const _f=window.fetch.bind(window);let TOKEN=sessionStorage.getItem('tk')||'',ME=null;
+const api=(u,o={})=>{o.headers=Object.assign({},o.headers||{},TOKEN?{Authorization:'Bearer '+TOKEN}:{});return _f(u,o).then(r=>{if(r.status===401&&TOKEN)logout();return r})};
+function logout(){TOKEN='';sessionStorage.removeItem('tk');$('#app').hidden=true;$('#login').hidden=false}
+
+const $=s=>document.querySelector(s);
+const el=(t,txt,cls)=>{const e=document.createElement(t);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;return e};
+const post=(u,b)=>api(u,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});
+const hum=k=>k.replace(/_/g,' ');
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');['t1','t2','t3','t4','t5'].forEach(i=>$('#'+i).hidden=i!==b.dataset.t)});
+
+// ---- Tab 1
+const CQ={mengatur_norma_umum:'Mengatur norma umum yang mengikat masyarakat',membebani_hak_kewajiban_sanksi_pungutan:'Membebankan hak/kewajiban baru, sanksi, atau pungutan',menjabarkan_peraturan_di_atasnya:'Hanya menjabarkan peraturan di atasnya',kerja_sama:'Merupakan kerja sama dengan pihak lain',hak_kewajiban_mengikat:'Hak dan kewajiban para pihak mengikat'};
+for(const k in CQ){const l=el('label');const c=el('input');c.type='checkbox';c.id='c_'+k;c.style.width='auto';l.append(c,' '+CQ[k]);$('#cls').append(l,el('br'))}
+$('#clsGo').onclick=async()=>{const b={};for(const k in CQ)b[k]=$('#c_'+k).checked;const r=await(await post('/classify',b)).json();
+ $('#clsOut').replaceChildren(el('div','Instrumen: '+r.instrument.toUpperCase()+' — '+r.alasan,'card'))};
+
+// ---- Tab 2
+let docId=null,sug={};
+const collect=(c,s=new Set())=>{if(c.fact)s.add(c.fact);(c.all||c.any||[]).forEach(x=>collect(x,s));return s};
+async function buildChecklist(){ if(!$('#facts'))return;
+ const inst=$('#inst').value,rs=(await(await api('/rules?instrument='+inst)).json()).rules;
+ const box=$('#facts');box.replaceChildren();const done=new Set();
+ rs.forEach(r=>collect(r.fail_if).forEach(f=>{if(done.has(f))return;done.add(f);
+  const row=el('div',null,'row card');const left=el('div');left.append(el('b',hum(f)),el('br'),el('small','Rule: '+r.id+' — '+r.title));
+  if(sug[f])left.append(el('br'),el('small','Saran otomatis: “'+sug[f].evidence+'”'));
+  const s=el('select');s.dataset.fact=f;[['','Belum dijawab'],['true','Ya'],['false','Tidak']].forEach(([v,t])=>{const o=el('option',t);o.value=v;s.append(o)});
+  if(sug[f])s.value=String(sug[f].value);row.append(left,s);box.append(row)}));
+ $('#run').hidden=false}
+$('#ck').onclick=buildChecklist;
+$('#up').onclick=async()=>{const f=$('#file').files[0];if(!f)return;const fd=new FormData();fd.append('file',f);
+ const r=await api('/documents',{method:'POST',body:fd});const j=await r.json();
+ if(!r.ok){$('#upOut').replaceChildren(el('div',j.detail,'card'));return}
+ docId=j.document_id;sug=j.suggested_facts;if(j.instrument_guess)$('#inst').value=j.instrument_guess;
+ const o=el('div',null,'card');o.append(el('div','Dokumen #'+docId+' | tebakan: '+(j.instrument_guess||'tidak dikenali')+' | unit: '+j.n_clauses+(j.needs_ocr?' | PDF scan: perlu OCR':'')));
+ j.citations.forEach(c=>o.append(el('div','• '+c.rujukan+': '+c.status.replace(/_/g,' '),'')));
+ $('#upOut').replaceChildren(o);buildChecklist()};
+$('#run').onclick=async()=>{const facts={};document.querySelectorAll('#facts select').forEach(s=>{if(s.value!=='')facts[s.dataset.fact]=s.value==='true'});
+ const inst=$('#inst').value;const r=await(docId?post('/documents/'+docId+'/audit',{instrument:inst,facts,use_suggested:false}):post('/audit',{instrument:inst,facts})).then(x=>x.json());
+ const out=$('#res');out.replaceChildren(el('div','Status: '+r.status+' | Skor: '+r.score,'card'));
+ r.findings.forEach(f=>{const c=el('div',null,'card '+f.severity);c.append(el('b',f.id+' ['+f.severity+'] '+f.title),el('br'),el('span',f.advice),el('br'),el('small',(f.state==='belum_terjawab'?'Belum terjawab — ':'')+f.basis));out.append(c)});
+ out.append(el('small',r.catatan))};
+
+// ---- Tab 3
+async function loadForm(){const fs=await(await api('/draft/fields?instrument='+$('#dinst').value)).json();const box=$('#dform');box.replaceChildren();
+ fs.forEach(f=>{const l=el('label',f.label);const i=el(f.multiline?'textarea':'input');if(f.multiline)i.rows=3;i.dataset.k=f.key;l.append(i);box.append(l)})}
+$('#dinst').onchange=loadForm;
+const dvals=()=>{const v={};document.querySelectorAll('#dform [data-k]').forEach(i=>v[i.dataset.k]=i.value);return {instrument:$('#dinst').value,inputs:v}};
+$('#pv').onclick=async()=>{const r=await(await post('/draft/preview',dvals())).json();const o=$('#dout');o.replaceChildren();
+ const w=el('div',null,'card');w.append(el('b','Isian belum lengkap: '+r.missing.length+' | Dasar hukum belum diverifikasi: '+r.unverified_citations));r.missing.forEach(m=>w.append(el('br'),el('small',m)));o.append(w);
+ const p=el('pre',r.paragraphs.map(x=>x[1]).join('\n\n'),'card');o.append(p)};
+$('#dl').onclick=async()=>{const r=await post('/draft/docx',dvals());const b=await r.blob();const a=el('a');a.href=URL.createObjectURL(b);a.download='draf-'+$('#dinst').value+'.docx';a.click()};
+
+// ---- Login, peran, AI, review, admin
+async function afterLogin(){const r=await api('/me');if(!r.ok)return;ME=await r.json();
+ $('#login').hidden=true;$('#app').hidden=false;$('#who').textContent=ME.username+' ('+ME.role+')';
+ const rv=ME.role==='admin'||ME.role==='reviewer';$('#nv4').hidden=false;$('#nv5').hidden=ME.role!=='admin';
+ $('#aiBox').hidden=$('#ai').hidden=!ME.llm_enabled;loadForm();if(rv||true)loadRuns()}
+$('#lg').onclick=async()=>{const r=await _f('/auth/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:$('#lu').value,password:$('#lp').value})});
+ const j=await r.json();if(!r.ok){$('#lerr').textContent=j.detail;return}TOKEN=j.token;sessionStorage.setItem('tk',TOKEN);$('#lp').value='';afterLogin()};
+$('#lo').onclick=logout;
+$('#ai').onclick=async()=>{if(!docId){$('#upOut').replaceChildren(el('div','Unggah dokumen dulu.','card'));return}
+ const r=await post('/documents/'+docId+'/llm-review',{instrument:$('#inst').value,confirm_external:$('#aiOk').checked});const j=await r.json();
+ if(!r.ok){$('#upOut').append(el('div',j.detail,'card'));return}
+ for(const k in j.facts)sug[k]={value:j.facts[k].value,evidence:'[AI, periksa] '+j.facts[k].evidence};buildChecklist();
+ const box=el('div',null,'card');box.append(el('b','Catatan AI (saran, wajib review)'+(j.truncated?' — dokumen dipotong':'')));
+ j.clause_notes.forEach(n=>{const d=el('div',null,'card '+n.severity);d.append(el('b',n.clause+' ['+n.severity+'] '+n.issue),el('br'),el('small','“'+n.quote+'”'),el('br'),el('span',n.suggestion));
+  (n.legal_refs||[]).forEach(x=>d.append(el('br'),el('small','Rujukan: '+x.ref+' — '+x.status.replace(/_/g,' '))));box.append(d)});$('#upOut').append(box)};
+async function loadRuns(){const rs=await(await api('/audit-runs')).json();const o=$('#runs');o.replaceChildren();if(!Array.isArray(rs))return;
+ rs.forEach(r=>{const c=el('div',null,'card');c.append(el('b','#'+r.id+' '+r.instrument.toUpperCase()+' — '+r.status+' (skor '+r.score+', '+r.findings+' temuan)'),el('br'),
+  el('small',r.review?('Review: '+r.review.decision+' oleh '+r.review.by+(r.review.note?' — '+r.review.note:'')):'Belum direview'));
+  if(ME.role!=='penyusun'){const n=el('input');n.placeholder='Catatan reviewer';c.append(n,el('br'));
+   ['disetujui','revisi','ditolak'].forEach(d=>{const b=el('button',d,'go');b.onclick=async()=>{await post('/audit-runs/'+r.id+'/review',{decision:d,note:n.value});loadRuns()};c.append(b)})}
+  o.append(c)})}
+$('#nv4').addEventListener('click',loadRuns);
+$('#nv5').addEventListener('click',loadUsers);
+async function loadUsers(){const us=await(await api('/users')).json();const o=$('#users');o.replaceChildren();if(!Array.isArray(us))return;
+ us.forEach(u=>{const c=el('div',u.username+' — '+u.role+(u.active?'':' (nonaktif)'),'card');const b=el('button',u.active?'Nonaktifkan':'Aktifkan','go');
+  b.onclick=async()=>{await api('/users/'+u.id+'/active?active='+(!u.active),{method:'POST'});loadUsers()};c.append(el('br'),b);o.append(c)})}
+$('#mk').onclick=async()=>{const r=await post('/users',{username:$('#nu').value,password:$('#np').value,role:$('#nr').value});const j=await r.json();
+ $('#merr').textContent=r.ok?'Pengguna dibuat.':j.detail;$('#np').value='';loadUsers()};
+if(TOKEN)afterLogin();
+</script></div></main></body></html>
